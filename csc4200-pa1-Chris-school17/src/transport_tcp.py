@@ -95,23 +95,6 @@ def close(conn):
     discard whatever is still arriving until end-of-stream (or about a second
     passes), then close. Specification, Section 8.2 explains why."""
 
-    try:
-        conn.shutdown(socket.SHUT_WR)
-        conn.settimeout(1.0)
-        start_time = time.time()
-        while time.time() - start_time < 1.0:
-            try:
-                data = conn.recv(4096)
-                if not data:
-                    break
-            except socket.timeout:
-                break
-            except Exception:
-                break
-    except Exception:
-        pass
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+    conn.shutdown(socket.SHUT_WR)
+    conn.settimeout(1.0)
+    conn.close()
