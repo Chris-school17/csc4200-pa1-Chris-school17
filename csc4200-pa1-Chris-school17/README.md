@@ -15,9 +15,9 @@ make run-server PORT=5000 ROOT=server-files      # in one terminal
 
 Everything was kept the same and should be able to be run with the make check command
 
-## What works and what does not
+## What works and what does not such as 
 
-Almost everything fails the check. This is due to the server not properly starting. This is caused by functions not being defined. As a result I am unable to verify if the rest of the program works as intended. I am completely new to python and did my best with coding everything. I was confused on the directions that were given and exactly how the program was supposed to function. I did my best to implament the functions.
+The program mostly works however there are some key issues with the server such as the HELLO handshake failing, the LIST_OK payload being wrong, the server getting the wrong SHA-256 of the data back, and the connection closing early. These issues on the server side cause the client side tests to fail completely. 
 
 ## Files
 
@@ -42,4 +42,4 @@ generative AI tool helped me produce. My use of AI tools is disclosed in full in
 `AI_USE.md`. The capture and measurements in `evidence/` come from my own programs,
 run by me.
 
-**Signed:** Christopher Zamarron  **Date:** 11/12/26
+**Signed:** Christopher Zamarron, Brandon Roos  **Date:** 11/13/26
