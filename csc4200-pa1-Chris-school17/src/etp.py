@@ -32,22 +32,21 @@ NAME_RE = re.compile(rb"^[A-Za-z0-9_-][A-Za-z0-9._-]{0,63}\Z")
 
 
 def encode(mtype, payload=b"", status=0):
-    """Return the bytes of one complete ETP message: header + payload."""
-    # TODO: pack the header with HEADER.pack(...) and append the payload.
-    raise NotImplementedError
+    if len(payload) > MAX_LEN:
+        raise ValueError(f"Payload length {len(payload)} exceeds MAX_LEN {MAX_LEN}")
+    header = HEADER.pack(VERSION, mtype, status, 0, len(payload))
+    return header + payload
 
 
 def read_message(conn, transport):
-    """Read one complete message from `conn` using only transport.recv_exact.
-
-    Return (version, mtype, status, length, payload). Think about the order of
-    checks in Specification Section 8.1: what must be checked BEFORE you read
-    the payload, and why?
-    """
-    # TODO
-    raise NotImplementedError
-
+    header_bytes = transport.recv_exact(conn, HEADER_SIZE)
+    version, mtype, status, reserved, length = HEADER.unpack(header_bytes)
+    if length > MAX_LEN:
+        raise ValueError(f"Received message length {length} exceeds MAX_LEN {MAX_LEN}")
+    payload = transport.recv_exact(conn, length)
+    return version, mtype, status, length, payload
 
 def valid_name(name_bytes):
     """True if `name_bytes` is a valid ETP file name (Specification, Section 7)."""
     return bool(NAME_RE.match(name_bytes))
+
