@@ -17,6 +17,7 @@ the PA1 brief.
 """
 
 import socket
+import time
 
 class ConnectionClosed(Exception):
     """The peer closed the stream.
@@ -35,9 +36,9 @@ def listen(bind_addr, port):
     """Start accepting sessions on bind_addr:port; return a listener.
     Remember SO_REUSEADDR (Specification, Section 9)."""
     ls = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    ls.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 9)
+    ls.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     ls.bind((bind_addr, port))
-    ls.listen(8)
+    ls.listen(128)
 
     return ls
 
@@ -70,17 +71,47 @@ def send_all(conn, data):
 
 def recv_exact(conn, n):
     """Return exactly n bytes. Raise ConnectionClosed(clean=...) if the stream ends."""
-    try:
-        rec = conn.recv(n)
-        return rec
-    except:
-        raise ConnectionClosed
+    data = bytearray()
+    while len(data) < n:
+        try:
+            chunk = conn.recv(n - len(data))
+        except (socket.error, ConnectionError):
+            if not data:
+                raise ConnectionClosed(clean=True)
+            else:
+                raise ConnectionClosed(clean=False)
+        if not chunk:
+            if not data:
+                raise ConnectionClosed(clean=True)
+            else:
+                raise ConnectionClosed(clean=False)
+                
+        data.extend(chunk)
+    return bytes(data)
 
 
 def close(conn):
     """Close the session gracefully: shut down your sending side, read and
     discard whatever is still arriving until end-of-stream (or about a second
     passes), then close. Specification, Section 8.2 explains why."""
-    
-    conn.shutdown()
-    conn.close()
+
+    try:
+        conn.shutdown(socket.SHUT_WR)
+        conn.settimeout(1.0)
+        start_time = time.time()
+        while time.time() - start_time < 1.0:
+            try:
+                data = conn.recv(4096)
+                if not data:
+                    break
+            except socket.timeout:
+                break
+            except Exception:
+                break
+    except Exception:
+        pass
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
