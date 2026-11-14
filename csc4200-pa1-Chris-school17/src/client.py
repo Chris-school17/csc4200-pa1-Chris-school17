@@ -13,7 +13,8 @@ import sys
 import traceback
 
 import etp
-import transport                     # the seam: see src/transport.py
+import transport
+from transport_tcp import connect                     # the seam: see src/transport.py
 
 # Exit status (Specification, Section 10)
 EXIT_OK, EXIT_SERVER_ERROR, EXIT_FAILURE, EXIT_DIGEST = 0, 1, 2, 3
@@ -27,17 +28,44 @@ def run(args):
     `list` prints the LIST_OK payload exactly, `put` prints the 64-hex-digit
     digest, and every diagnostic goes to standard error.
     """
+    conn = None
+    try:
+        conn = connect(args.HOST, args.PORT)
+        hello_data = f"HELLO {args.name}\n".encode("utf-8")
+        conn.sendall(hello_data)
+        command_str = getattr(args, "command", "")
+        cmd_data = f"{command_str}\n".encode("utf-8")
+        conn.sendall(cmd_data)
+        response_buffer = bytearray()
+        while True:
+            chunk = conn.recv(4096)
+            if not chunk:
+                break
+        response_buffer.extend(chunk)
+        response_text = response_buffer.decode("utf-8", errors="replace")
+        if command_str.startswith("list"):
+            print(response_text, end="")
+        elif command_str.startswith("put"):
+            print(response_text.strip())
+        else:
+            print(response_text, end="")
+        conn.sendall(b"BYE\n")
+        while True:
+            data = conn.recv(4096)
+            if not data:
+                break
+    except Exception as e:
+        print(f"Error during session: {e}", file=sys.stderr)
+        return 1
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
-    conn = connect(args.HOST, args.PORT)
-
-    send_all(conn, args.name)
-
-    close(conn)
-
+    return 0
     
-            
-
-
 
 def main():
     ap = argparse.ArgumentParser(description="ETP/1 client")
