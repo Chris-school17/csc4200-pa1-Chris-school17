@@ -15,21 +15,16 @@ python3 ~/csc4200-course/project/pa2/etpt_relay.py --listen 7000 \
 ./etpt-send --host 127.0.0.1 --port 7000 --file scratch/small.bin --window 16   # terminal 3
 ```
 
-_Replace this with anything else a grader needs: dependencies you installed, the
-Python or gcc version you used, how to run your own tests._
+Nothing else needed
 
 ## What works and what does not
 
-_Be specific and honest. Paste the `Execution: N / 30 points` and `Build and
-repository: N / 10` lines from `make check`. List any test that fails and what
-you believe the cause is. Known limitations go here, not in a footnote. An
-honest "S10 fails because ..." earns more than silence._
+Everything works except Receiver test R07 which fails with the error "malformed datagrams counted and ignored
+counted checksum_failures=2 invalid=2; expected 1 and 3 (Specification, Section 6.1)".   
 
 ## Who did what
 
-_One short paragraph or table per member: what each of you designed, wrote, tested
-and measured. Commit under your own name, so the history agrees with this. Every
-member must still be able to explain every part._
+I did everything for PA2. My partner did everything for PA1. 
 
 ## Files
 
@@ -56,4 +51,4 @@ disclosed in full in `AI_USE.md`. The capture and measurements in `evidence/` co
 from our own programs, run by us. _Every member signs on a line of their own;
 add a line for each member._
 
-**Signed:** _full name_  **Date:** _date_
+**Signed:** Brandon Roos  **Date:** 11/22/26
